@@ -1,0 +1,141 @@
+---
+title: "Implementación de Black-Scholes y árboles binomiales"
+author: "Joel Bravo y Mohammed Essabaouni"
+date: "2025-05-12"
+output:
+  slidy_presentation:
+    incremental: false
+  ioslides_presentation:
+    widescreen: true
+    smaller: true
+    incremental: false
+  beamer_presentation:
+    incremental: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE, fig.align = "center", fig.width = 7, fig.height = 5)
+```
+
+## Introducción: Modelo de Black-Scholes
+
+- Valora opciones europeas bajo suposiciones ideales.
+- Fórmula para una **call** europea:
+
+\[
+C = S_0 N(d_1) - K e^{-rT} N(d_2)
+\]
+
+\[
+d_1 = \frac{\ln(S_0 / K) + (r + \frac{\sigma^2}{2})T}{\sigma \sqrt{T}}, \quad
+d_2 = d_1 - \sigma \sqrt{T}
+\]
+
+---
+
+## Introducción: Árbol Binomial
+
+- Aproxima el precio de una opción en pasos discretos.
+- Cada paso: el activo sube (\(u\)) o baja (\(d\)).
+- Probabilidad neutra al riesgo:
+
+\[
+p = \frac{e^{r \Delta t} - d}{u - d}
+\]
+
+- Cálculo hacia atrás desde el vencimiento; converge a Black-Scholes.
+
+---
+
+## Función Black-Scholes
+
+```{r}
+black_scholes <- function(S, K, r, T, sigma, type = "call") {  
+  d1 <- (log(S / K) + (r + 0.5 * sigma^2) * T) / (sigma * sqrt(T))
+  d2 <- d1 - sigma * sqrt(T)
+  if (type == "call") {
+    price <- S * pnorm(d1) - K * exp(-r * T) * pnorm(d2)
+  } else {
+    price <- K * exp(-r * T) * pnorm(-d2) - S * pnorm(-d1)
+  }
+  return(price)
+}
+```
+
+---
+
+## Función de Árbol Binomial
+
+```{r}
+binomial_option_price <- function(S, K, r, T, sigma, steps, type = "call") {
+  dt <- T / steps
+  u <- exp(sigma * sqrt(dt))
+  d <- 1 / u
+  p <- (exp(r * dt) - d) / (u - d)
+  asset_prices <- numeric(steps + 1)
+  option_values <- numeric(steps + 1)
+  for (i in 0:steps) {
+    asset_prices[i + 1] <- S * u^i * d^(steps - i)
+  }
+  if (type == "call") {
+    option_values <- pmax(asset_prices - K, 0)
+  } else {
+    option_values <- pmax(K - asset_prices, 0)
+  }
+  for (j in (steps - 1):0) {
+    for (i in 0:j) {
+      option_values[i + 1] <- exp(-r * dt) * (p * option_values[i + 2] + (1 - p) * option_values[i + 1])
+    }
+  }
+  return(option_values[1])
+}
+```
+
+---
+
+## Ejemplo (Call)
+
+```{r}
+S <- 100; K <- 100; r <- 0.05; T <- 1; sigma <- 0.2; type <- "call"
+steps_seq <- 1:100
+binomial_prices <- sapply(steps_seq, function(n) binomial_option_price(S, K, r, T, sigma, n, type))
+bs_price <- black_scholes(S, K, r, T, sigma, type)
+```
+
+---
+
+## Gráfica de Convergencia (Call)
+
+```{r, echo=FALSE}
+library(ggplot2)
+df <- data.frame(steps_seq, binomial_prices)
+ggplot(df, aes(x = steps_seq, y = binomial_prices)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = bs_price, linetype = "dashed", color = "darkred", size = 1) +
+  labs(title = "Convergencia del Árbol Binomial al Precio de Black-Scholes", x = "Número de pasos", y = "Precio") +
+  theme_minimal()
+```
+
+---
+
+## Ejemplo (Put)
+
+```{r}
+S <- 80; K <- 80; r <- 0.03; T <- 1; sigma <- 0.10; type <- "put"
+steps_seq <- 1:100
+binomial_prices <- sapply(steps_seq, function(n) binomial_option_price(S, K, r, T, sigma, n, type))
+bs_price <- black_scholes(S, K, r, T, sigma, type)
+df <- data.frame(steps_seq, binomial_prices)
+```
+
+---
+
+## Gráfica de Convergencia (Put)
+
+```{r, echo=FALSE}
+ggplot(df, aes(x = steps_seq, y = binomial_prices)) +
+  geom_line(color = "steelblue", size = 1) +
+  geom_hline(yintercept = bs_price, linetype = "dashed", color = "darkred", size = 1) +
+  labs(title = "Convergencia del Árbol Binomial al Precio de Black-Scholes (Put)", x = "Número de pasos", y = "Precio") +
+  theme_minimal()
+```
