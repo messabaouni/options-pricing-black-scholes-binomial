@@ -1,6 +1,6 @@
 # Option Pricing: Black-Scholes and Binomial Trees
 
-Coursework for *Quantitative Finance* (MESIO UPC-UB, 2025), written in R with Joel Bravo.
+Coursework for *Quantitative Finance* (MESIO UPC-UB, 2025), written in R.
 It implements European option pricing in two ways and shows that the binomial tree converges to the Black-Scholes price as the number of steps grows.
 
 - **Black-Scholes** closed-form price for calls and puts
@@ -24,4 +24,4 @@ binomial_option_price(100, 100, 0.05, 1, 0.2, steps = 500, type = "call")
 Requires R with `ggplot2` for the plots. Run `Rscript R/convergence_example.R` from the repository root.
 
 ## Authors
-Mohammed Essabaouni and Joel Bravo
+Mohammed Essabaouni

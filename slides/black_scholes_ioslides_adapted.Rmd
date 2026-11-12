@@ -1,6 +1,6 @@
 ---
 title: "Implementación de Black-Scholes y árboles binomiales"
-author: "Joel Bravo y Mohammed Essabaouni"
+author: "Mohammed Essabaouni"
 date: "2025-05-12"
 output:
   slidy_presentation:
