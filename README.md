@@ -23,5 +23,8 @@ binomial_option_price(100, 100, 0.05, 1, 0.2, steps = 500, type = "call")
 ```
 Requires R with `ggplot2` for the plots. Run `Rscript R/convergence_example.R` from the repository root.
 
+## What the results show
+A binomial tree prices an option by stepping the asset price up or down at each time step and discounting back from expiry. With few steps the price oscillates around the Black-Scholes value, and as steps increase the tree price converges to the closed-form value. The plots in the slides (`docs/slides.html`) show this for a call and a put.
+
 ## Authors
-Mohammed Essabaouni
+Mohammed Essabaouni and Joel Bravo
